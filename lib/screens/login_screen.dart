@@ -30,8 +30,9 @@ class _LoginScreenState extends State<LoginScreen> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setInt('user_id', user['id'] as int);
         await prefs.setString('user_name', user['nama'] ?? 'User');
-        await prefs.setString('user_email', user['username'] ?? '');
+        await prefs.setString('user_email', user['email'] ?? '');
         await prefs.setString('user_address', user['alamat'] ?? '');
+        await prefs.setString('username', user['username'] ?? '');
         
         if (mounted) {
           Navigator.pushReplacementNamed(context, '/main');

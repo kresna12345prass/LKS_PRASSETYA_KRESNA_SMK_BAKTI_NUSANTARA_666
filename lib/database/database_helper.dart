@@ -19,7 +19,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );
@@ -31,7 +31,8 @@ class DatabaseHelper {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nama TEXT,
         alamat TEXT,
-        username TEXT NOT NULL UNIQUE,
+        username TEXT,
+        email TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL,
         created_at TEXT NOT NULL
       )
@@ -71,6 +72,18 @@ class DatabaseHelper {
       // Add user_id column to transactions table
       await db.execute('ALTER TABLE transactions ADD COLUMN user_id INTEGER DEFAULT 1');
     }
+    if (oldVersion < 4) {
+      // Check if columns exist before adding
+      final columns = await db.rawQuery('PRAGMA table_info(users)');
+      final columnNames = columns.map((col) => col['name'] as String).toList();
+      
+      if (!columnNames.contains('email')) {
+        await db.execute('ALTER TABLE users ADD COLUMN email TEXT');
+      }
+      if (!columnNames.contains('username')) {
+        await db.execute('ALTER TABLE users ADD COLUMN username TEXT');
+      }
+    }
   }
 
   Future _insertDefaultProducts(Database db) async {
@@ -97,12 +110,12 @@ class DatabaseHelper {
     return await db.insert('users', user);
   }
 
-  Future<Map<String, dynamic>?> getUser(String username, String password) async {
+  Future<Map<String, dynamic>?> getUser(String email, String password) async {
     final db = await database;
     final result = await db.query(
       'users',
-      where: 'username = ? AND password = ?',
-      whereArgs: [username, password],
+      where: 'email = ? AND password = ?',
+      whereArgs: [email, password],
     );
     return result.isNotEmpty ? result.first : null;
   }

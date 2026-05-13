@@ -29,6 +29,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           'nama': _namaController.text,
           'alamat': _alamatController.text,
           'username': _usernameController.text,
+          'email': _emailController.text,
           'password': _passwordController.text,
           'created_at': DateTime.now().toIso8601String(),
         });
@@ -43,7 +44,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         setState(() => _isLoading = false);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Username sudah terdaftar')),
+            SnackBar(content: Text('Email sudah terdaftar')),
           );
         }
       }
