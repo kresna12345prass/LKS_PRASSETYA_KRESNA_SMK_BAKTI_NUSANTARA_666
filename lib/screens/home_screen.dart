@@ -6,15 +6,15 @@ class HomeScreen extends StatefulWidget {
   final Function(Product) addToCart;
   final List<Product> cart;
 
-  HomeScreen({required this.addToCart, required this.cart});
+  const HomeScreen({super.key, required this.addToCart, required this.cart});
 
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   String _selectedCategory = "Semua";
-  List<Product> _products = [
+  final List<Product> _products = [
     Product(
         name: "Nasi Goreng",
         price: 15000,
@@ -190,6 +190,7 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: EdgeInsets.symmetric(vertical: 8),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(horizontal: 10),
                 child: Row(
                   children: [
                     _buildCategoryChip("Semua", Icons.all_inclusive),

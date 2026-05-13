@@ -4,7 +4,7 @@ import 'main_screen.dart';
 class HistoryScreen extends StatelessWidget {
   final List<Transaction> history;
 
-  HistoryScreen({required this.history});
+  const HistoryScreen({super.key, required this.history});
 
   // Helper function to format currency with thousand separators
   String _formatCurrency(double amount) {

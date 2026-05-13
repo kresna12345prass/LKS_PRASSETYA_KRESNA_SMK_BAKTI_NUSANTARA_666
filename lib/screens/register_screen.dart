@@ -3,17 +3,22 @@ import 'login_screen.dart';
 import '../database/database_helper.dart';
 
 class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
+
   @override
-  _RegisterScreenState createState() => _RegisterScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _namaController = TextEditingController();
   final _alamatController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
   bool _isLoading = false;
 
   void _register() async {
@@ -23,20 +28,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
         await DatabaseHelper.instance.createUser({
           'nama': _namaController.text,
           'alamat': _alamatController.text,
-          'username': _emailController.text,
+          'username': _usernameController.text,
           'password': _passwordController.text,
           'created_at': DateTime.now().toIso8601String(),
         });
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Registrasi berhasil!')),
-        );
-        Navigator.pushReplacementNamed(context, '/login');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Registrasi berhasil!')),
+          );
+          Navigator.pushReplacementNamed(context, '/login');
+        }
       } catch (e) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Email sudah terdaftar')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Username sudah terdaftar')),
+          );
+        }
       }
     }
   }
@@ -45,8 +54,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void dispose() {
     _namaController.dispose();
     _alamatController.dispose();
+    _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -133,6 +144,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           SizedBox(height: 20),
                           TextFormField(
+                            controller: _usernameController,
+                            decoration: InputDecoration(
+                              labelText: "Username",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              prefixIcon: Icon(Icons.account_circle),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return "Masukkan username";
+                              } else if (value.length < 4) {
+                                return "Username minimal 4 karakter";
+                              }
+                              return null;
+                            },
+                          ),
+                          SizedBox(height: 20),
+                          TextFormField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress, // Tambahkan ini untuk keyboard email
                             decoration: InputDecoration(
@@ -184,6 +214,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               return null;
                             },
                           ),
+                          SizedBox(height: 20),
+                          TextFormField(
+                            controller: _confirmPasswordController,
+                            obscureText: !_isConfirmPasswordVisible,
+                            decoration: InputDecoration(
+                              labelText: "Konfirmasi Password",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              prefixIcon: Icon(Icons.lock_outline),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isConfirmPasswordVisible
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                ),
+                                onPressed: () {
+                                  setState(() =>
+                                      _isConfirmPasswordVisible = !_isConfirmPasswordVisible);
+                                },
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return "Masukkan konfirmasi password";
+                              } else if (value != _passwordController.text) {
+                                return "Password tidak cocok";
+                              }
+                              return null;
+                            },
+                          ),
                         ],
                       ),
                     ),
@@ -216,7 +277,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                     SizedBox(height: 25),
                     // Tombol Kembali ke Login (Dipercantik)
-                    Container(
+                    SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
                         onPressed: () => Navigator.pushReplacement(
@@ -247,7 +308,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     SizedBox(height: 15),
                     // Tombol Kembali ke Halaman Utama (Dipercantik)
-                    Container(
+                    SizedBox(
                       width: double.infinity,
                       child: TextButton.icon(
                         onPressed: () =>

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'main_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -8,7 +9,8 @@ class SettingsScreen extends StatefulWidget {
   final String? userName;
   final String? userAddress;
 
-  SettingsScreen({
+  const SettingsScreen({
+    super.key,
     required this.cart, 
     required this.addProduct,
     this.userEmail,
@@ -17,7 +19,7 @@ class SettingsScreen extends StatefulWidget {
   });
 
   @override
-  _SettingsScreenState createState() => _SettingsScreenState();
+  State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
@@ -101,9 +103,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         child: Text("Batal"),
                       ),
                       TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          Navigator.pushReplacementNamed(context, '/welcome');
+                        onPressed: () async {
+                          // Clear user data from SharedPreferences
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.remove('user_id');
+                          await prefs.remove('user_name');
+                          await prefs.remove('user_email');
+                          await prefs.remove('user_address');
+                          
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                            Navigator.pushReplacementNamed(context, '/welcome');
+                          }
                         },
                         child: Text("Keluar", style: TextStyle(color: Colors.red)),
                       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/pdf_helper.dart';
 import 'main_screen.dart';
 
 class OrderScreen extends StatefulWidget {
@@ -7,15 +8,15 @@ class OrderScreen extends StatefulWidget {
   final VoidCallback clearCart;
   final Function(List<Product>, double, String) addToHistory;
   const OrderScreen({
-    Key? key,
+    super.key,
     required this.cart,
     required this.removeFromCart,
     required this.clearCart,
     required this.addToHistory,
-  }) : super(key: key);
+  });
 
   @override
-  _OrderScreenState createState() => _OrderScreenState();
+  State<OrderScreen> createState() => _OrderScreenState();
 }
 
 class _OrderScreenState extends State<OrderScreen>
@@ -24,6 +25,7 @@ class _OrderScreenState extends State<OrderScreen>
   double _change = 0.0;
   bool _showPaymentDialog = false;
   late AnimationController _animationController;
+  String _currentPaymentMethod = 'Manual';
 
   // Helper function to format currency with thousand separators
   String _formatCurrency(double amount) {
@@ -85,6 +87,7 @@ class _OrderScreenState extends State<OrderScreen>
       );
       return;
     }
+    _currentPaymentMethod = 'Manual';
     widget.addToHistory(widget.cart, total, "Manual");
     _showSuccessDialog(total, "Manual");
     setState(() {
@@ -226,13 +229,39 @@ class _OrderScreenState extends State<OrderScreen>
     );
   }
 
-  void _printReceipt(double total) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Struk berhasil dicetak'),
-        backgroundColor: Colors.green,
-      ),
-    );
+  void _printReceipt(double total) async {
+    try {
+      final payment = _currentPaymentMethod == 'Manual' 
+          ? double.parse(_paymentController.text) 
+          : total;
+      
+      await PdfHelper.generateReceipt(
+        items: widget.cart,
+        total: total,
+        paymentMethod: _currentPaymentMethod,
+        payment: payment,
+        change: _change,
+      );
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Struk berhasil disimpan di Download'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menyimpan struk: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   // Dialog for manual payment

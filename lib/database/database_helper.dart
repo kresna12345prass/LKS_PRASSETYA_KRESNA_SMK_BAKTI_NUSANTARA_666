@@ -19,7 +19,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );
@@ -50,10 +50,12 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
         total REAL NOT NULL,
         payment_method TEXT NOT NULL,
         created_at TEXT NOT NULL,
-        items TEXT NOT NULL
+        items TEXT NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users (id)
       )
     ''');
 
@@ -64,6 +66,10 @@ class DatabaseHelper {
     if (oldVersion < 2) {
       await db.execute('ALTER TABLE users ADD COLUMN nama TEXT');
       await db.execute('ALTER TABLE users ADD COLUMN alamat TEXT');
+    }
+    if (oldVersion < 3) {
+      // Add user_id column to transactions table
+      await db.execute('ALTER TABLE transactions ADD COLUMN user_id INTEGER DEFAULT 1');
     }
   }
 
@@ -111,8 +117,16 @@ class DatabaseHelper {
     return await db.insert('transactions', transaction);
   }
 
-  Future<List<Map<String, dynamic>>> getTransactions() async {
+  Future<List<Map<String, dynamic>>> getTransactions({int? userId}) async {
     final db = await database;
+    if (userId != null) {
+      return await db.query(
+        'transactions',
+        where: 'user_id = ?',
+        whereArgs: [userId],
+        orderBy: 'created_at DESC',
+      );
+    }
     return await db.query('transactions', orderBy: 'created_at DESC');
   }
 

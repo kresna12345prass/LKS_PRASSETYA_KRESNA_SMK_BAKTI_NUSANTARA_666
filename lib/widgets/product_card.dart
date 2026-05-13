@@ -8,13 +8,13 @@ class ProductCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const ProductCard({
+    super.key,
     required this.productName,
     required this.productImage,
     required this.productPrice,
     this.productCategory,
     required this.onTap,
-    Key? key,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

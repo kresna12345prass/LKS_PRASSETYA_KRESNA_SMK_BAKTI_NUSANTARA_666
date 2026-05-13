@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'home_screen.dart';
 import 'order_screen.dart';
@@ -8,8 +9,10 @@ import '../widgets/custom_bottom_navigation_bar.dart';
 import '../database/database_helper.dart';
 
 class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+
   @override
-  _MainScreenState createState() => _MainScreenState();
+  State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
@@ -19,28 +22,31 @@ class _MainScreenState extends State<MainScreen> {
   String? _userEmail;
   String? _userName;
   String? _userAddress;
+  int? _userId;
 
   @override
   void initState() {
     super.initState();
     _cart = [];
     _history = [];
-    _loadHistory();
     _loadUserData();
   }
 
   Future<void> _loadUserData() async {
-    // Untuk sementara, kita akan menggunakan data dummy
-    // Nanti bisa diambil dari database atau SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _userEmail = "user@example.com";
-      _userName = "Pengguna Warung Go";
-      _userAddress = "Jl. Contoh No. 123, Jakarta";
+      _userId = prefs.getInt('user_id');
+      _userName = prefs.getString('user_name') ?? 'Pengguna Warung Go';
+      _userEmail = prefs.getString('user_email') ?? 'user@example.com';
+      _userAddress = prefs.getString('user_address') ?? 'Alamat tidak tersedia';
     });
+    await _loadHistory();
   }
 
   Future<void> _loadHistory() async {
-    final transactions = await DatabaseHelper.instance.getTransactions();
+    if (_userId == null) return;
+    
+    final transactions = await DatabaseHelper.instance.getTransactions(userId: _userId);
     setState(() {
       _history = transactions.map((t) {
         final items = (jsonDecode(t['items']) as List)
@@ -84,6 +90,8 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> _addToHistory(List<Product> cart, double total, String paymentMethod) async {
+    if (_userId == null) return;
+    
     final itemsJson = jsonEncode(
       cart.map((p) => {
         'name': p.name,
@@ -94,6 +102,7 @@ class _MainScreenState extends State<MainScreen> {
     );
     
     await DatabaseHelper.instance.createTransaction({
+      'user_id': _userId,
       'total': total,
       'payment_method': paymentMethod,
       'created_at': DateTime.now().toIso8601String(),

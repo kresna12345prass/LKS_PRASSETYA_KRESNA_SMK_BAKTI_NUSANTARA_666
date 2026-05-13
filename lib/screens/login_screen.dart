@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'register_screen.dart';
 import '../database/database_helper.dart';
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
@@ -22,9 +25,18 @@ class _LoginScreenState extends State<LoginScreen> {
         _passwordController.text,
       );
       setState(() => _isLoading = false);
-      if (user != null) {
-        Navigator.pushReplacementNamed(context, '/main');
-      } else {
+      if (user != null && mounted) {
+        // Simpan user_id ke SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('user_id', user['id'] as int);
+        await prefs.setString('user_name', user['nama'] ?? 'User');
+        await prefs.setString('user_email', user['username'] ?? '');
+        await prefs.setString('user_address', user['alamat'] ?? '');
+        
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/main');
+        }
+      } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Email atau password salah')),
         );
@@ -177,7 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         SizedBox(height: 8),
-                        Container(
+                        SizedBox(
                           width: double.infinity,
                           child: OutlinedButton.icon(
                             onPressed: () {
@@ -213,7 +225,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(height: 15),
 
                     // Tombol Kembali ke Halaman Utama
-                    Container(
+                    SizedBox(
                       width: double.infinity,
                       child: TextButton.icon(
                         onPressed: () =>

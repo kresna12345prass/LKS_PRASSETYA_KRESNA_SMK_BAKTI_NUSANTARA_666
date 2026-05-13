@@ -2,6 +2,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 class WelcomeScreen extends StatelessWidget {
+  const WelcomeScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -198,7 +200,7 @@ class _AnimatedTextContent extends StatelessWidget {
 class _AuthButtons extends StatelessWidget {
   final BuildContext context;
 
-  _AuthButtons(this.context);
+  const _AuthButtons(this.context);
 
   @override
   Widget build(BuildContext context) {
